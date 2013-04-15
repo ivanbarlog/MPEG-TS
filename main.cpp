@@ -3,11 +3,12 @@
 #include <iostream>
 #include <vector>
 #include "parser.h"
+#include "mywidget.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
+    MyWidget w;
     w.show();
     
     std::vector<PacketInfo> packets;

@@ -14,13 +14,16 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    parser.cpp
+    parser.cpp \
+    mywidget.cpp
 
 HEADERS  += mainwindow.h \
     parser.h \
-    types.h
+    types.h \
+    mywidget.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    mywidget.ui
 
 OTHER_FILES += \
     OC3.demo.ts
