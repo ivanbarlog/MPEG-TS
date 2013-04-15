@@ -2,20 +2,22 @@
 #define PARSER_H
 
 #include "types.h"
-
+#include <vector>
+#include <QString>
 
 class Parser
 {
 public:
     Parser();
 
-    void run();
-    int getPacketLength(FILE *file);
-    TSHeader getTSHeader(FILE *file, PacketInfo packetInfo);
-    AFHeader getAFHeader(FILE *file, PacketInfo packetInfo);
+    std::vector<PacketInfo> getPacketsInfo(QString filename);
+    TSHeader getTSHeader(PacketInfo packetInfo);
+    AFHeader getAFHeader(PacketInfo packetInfo);
 
 private:
+    int getPacketLength();
 
+    FILE *m_file;
 };
 
 #endif // PARSER_H

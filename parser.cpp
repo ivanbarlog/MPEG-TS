@@ -6,29 +6,21 @@
 #include <vector>
 #include "parser.h"
 #include "types.h"
-#include <string>
+#include <QString>
 
-Parser::Parser()
+Parser::Parser() : m_file(NULL)
 {
 }
 
-void Parser::run()
+std::vector<PacketInfo> Parser::getPacketsInfo(QString filename)
 {
-    FILE *file = NULL;
     uint8_t read_data;
-    //uint64_t fsize;
-
     std::vector<PacketInfo> list;
 
-
-    file = fopen64("/home/dev/public/ts-files/football.ts", "rb");
-
-    //fseeko64(file, 0L, SEEK_END);
-    //fsize = ftello64(file);
-    //rewind(file);
+    m_file = fopen64(filename.toStdString().c_str(), "rb");
 
     int i = 1;
-    while (fread(&read_data, sizeof(uint8_t), 1, file) == 1)
+    while (fread(&read_data, sizeof(uint8_t), 1, m_file) == 1)
     {
         if (i == 31) break;
         if (read_data == SYNC_BYTE)
@@ -36,16 +28,16 @@ void Parser::run()
             uint8_t nextTwoBytes[2] = {0};
 
             PacketInfo tmp;
-            tmp.start = (uint64_t)(ftello64(file) - 1);
+            tmp.start = (uint64_t)(ftello64(m_file) - 1);
 
             int affected;
             for (int incr = 0; incr < 2; incr++)
             {
-               affected = fread(&nextTwoBytes[incr], sizeof(uint8_t), 1, file);
+               affected = fread(&nextTwoBytes[incr], sizeof(uint8_t), 1, m_file);
                if (affected != 1)
                {
-                   printf("Packet not complete.");
-                   return;
+                   //qDebug("Packet not complete.");
+                   //throw exception();
                }
             }
 
@@ -53,7 +45,7 @@ void Parser::run()
 
             tmp.pid = pidAssembly & 0x1fff;
 
-            tmp.length = getPacketLength(file);
+            tmp.length = getPacketLength();
 
             list.push_back(tmp);
 
@@ -70,64 +62,84 @@ void Parser::run()
     }
 
 
-    getTSHeader(file, list.at(0));
+    getTSHeader(list.at(0));
 
     std::cout << "Hura, hura, zvladli sme to!" << std::endl;
+
+    return list;
 }
 
-int Parser::getPacketLength(FILE *file)
+int Parser::getPacketLength()
 {
+    if (m_file == NULL) return -1;
+
     int result;
     uint8_t sync;
 
-    fseeko64(file, 185L, SEEK_CUR);
-    result = fread(&sync, sizeof(uint8_t), 1, file);
+    fseeko64(m_file, 185L, SEEK_CUR);
+    result = fread(&sync, sizeof(uint8_t), 1, m_file);
 
     if (result != 1) return -1;
     if (sync == SYNC_BYTE)
     {
-        fseeko64(file, -1L, SEEK_CUR);
+        fseeko64(m_file, -1L, SEEK_CUR);
         return 188;
     }
 
 
-    fseeko64(file, 15L, SEEK_CUR);
-    result = fread(&sync, sizeof(uint8_t), 1, file);
+    fseeko64(m_file, 15L, SEEK_CUR);
+    result = fread(&sync, sizeof(uint8_t), 1, m_file);
 
     if (result != 1) return -1;
     if (sync == SYNC_BYTE)
     {
-        fseeko64(file, -1L, SEEK_CUR);
+        fseeko64(m_file, -1L, SEEK_CUR);
         return 204;
     }
 
-    fseeko64(file, 3L, SEEK_CUR);
-    result = fread(&sync, sizeof(uint8_t), 1, file);
+    fseeko64(m_file, 3L, SEEK_CUR);
+    result = fread(&sync, sizeof(uint8_t), 1, m_file);
 
     if (result != 1) return -1;
     if (sync == SYNC_BYTE)
     {
-        fseeko64(file, -1L, SEEK_CUR);
+        fseeko64(m_file, -1L, SEEK_CUR);
         return 208;
     }
 
     return -1;
 }
 
-TSHeader Parser::getTSHeader(FILE *file, PacketInfo packetInfo)
+TSHeader Parser::getTSHeader(PacketInfo packetInfo)
 {
+    if (m_file == NULL)
+    {
+        qDebug("File not initialized.");
+        throw exception();
+    }
+
     TSHeader header;
     uint8_t read_data;
 
     //go to first byte of file
-    rewind(file);
+    rewind(m_file);
     //seek bytes with current packet
-    fseeko64(file, packetInfo.start, SEEK_CUR);
+    fseeko64(m_file, packetInfo.start, SEEK_CUR);
 
-    fread(&read_data, sizeof(uint8_t), 1, file);
+    fread(&read_data, sizeof(uint8_t), 1, m_file);
 
-    if (read_data == SYNC_BYTE) std::cout << "Found SYNC_BYTE" << std::endl;
-    //else return; //Cannot find SYNC_BYTE
+    if (read_data == SYNC_BYTE)
+    {
+        std::cout << "Found SYNC_BYTE" << std::endl;
 
-    return header;
+        //parse other TSHeader...
+
+        return header;
+    }
+    else
+    {
+        //cannot find SYNC_BYTE
+        qDebug("Cannot find SYNC_BYTE.");
+        throw exception();
+    }
 }
