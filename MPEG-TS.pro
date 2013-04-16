@@ -13,16 +13,15 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
     parser.cpp \
     mywidget.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += \
     parser.h \
     types.h \
     mywidget.h
 
-FORMS    += mainwindow.ui \
+FORMS    += \
     mywidget.ui
 
 OTHER_FILES += \
