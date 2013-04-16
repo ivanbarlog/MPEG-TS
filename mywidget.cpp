@@ -1,6 +1,8 @@
 #include "mywidget.h"
 #include "ui_mywidget.h"
 
+#include "parser.h"
+
 
 
 MyWidget::MyWidget()
@@ -56,10 +58,9 @@ void MyWidget::paintEvent(QPaintEvent *)
 void MyWidget::handleButton()
 {
 
-    path = QFileDialog::getOpenFileName(this, tr("Open File"),
-                                                     "",
-                                                     tr("Files (*.*)"));
-
+    path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Files (*.*)"));
+    Parser p;
+    packets = p.getPacketsInfo(path);
 }
 
 MyWidget::~MyWidget()

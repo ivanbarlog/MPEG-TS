@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QtGui>
 #include <vector>
+#include "types.h"
 #include <stdlib.h>
 #include <QPushButton>
 #include <QFileDialog>
@@ -32,6 +33,7 @@ protected:
 private:
     Ui::MyWidget *ui;
     QPushButton *m_button;
+    std::vector<PacketInfo> packets;
 };
 
 #endif // MYWIDGET_H

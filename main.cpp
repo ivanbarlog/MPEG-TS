@@ -1,8 +1,5 @@
 #include "mainwindow.h"
 #include <QApplication>
-#include <iostream>
-#include <vector>
-#include "parser.h"
 #include "mywidget.h"
 
 int main(int argc, char *argv[])
@@ -10,14 +7,6 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     MyWidget w;
     w.show();
-    
-    std::vector<PacketInfo> packets;
-    QString fname = "/home/dev/public/ts-files/football.ts";
-
-    Parser p;
-    packets = p.getPacketsInfo(fname);
-
-
 
     return a.exec();
 }
