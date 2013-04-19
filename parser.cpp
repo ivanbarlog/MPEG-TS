@@ -175,7 +175,7 @@ TSHeader Parser::getTSHeader(PacketInfo packetInfo)
         //AFC = 10 -> only adaptation field
         //AFC = 11 -> payload & adaptation field
 
-        if(header.adaptationFieldControl == 2 || header.adaptationFieldControl == 3)
+        if (header.adaptationFieldControl == 2 || header.adaptationFieldControl == 3)
         {
             AFHeader af;
 
