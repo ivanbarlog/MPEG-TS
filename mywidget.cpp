@@ -38,10 +38,10 @@ void MyWidget::paint()
     int q = 0, nr = 0;
     int s = packets.size();
     scene->setSceneRect(0,0,600,(s/80)*6+100);
-    for(int j = 0; j < (s / 80); j++)
+    for(int j = 0; j <= (s / 80); j++)
     {
         k = 80;
-        if(j+1 == (s/80))
+        if(j == (s/80))
             k = s % 80;
         for(int i = 0; i < k; i++)
         {
