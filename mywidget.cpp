@@ -19,9 +19,9 @@ MyWidget::MyWidget()
     m_button->setText("Open File");
 
     map_bg = new QGraphicsView(this);
-    map_bg->setGeometry(50,50,200,200);
+    map_bg->setGeometry(50,50,600,300);
     scene = new QGraphicsScene(map_bg);
-    scene->setSceneRect(50,50,200,200);
+
     map_bg->setBackgroundBrush(QBrush(Qt::white, Qt::SolidPattern));
     map_bg->setScene(scene);
     map_bg->scale(1,-1);
@@ -31,33 +31,61 @@ MyWidget::MyWidget()
 
 void MyWidget::paint()
 {
-    for (int u = 0; u<1500; u++)
-        fff[u] = rand() % 8;
+    u_int16_t pid[13];
 
     int r = 0;
-    int k = 0;
-    for(int j = 0; j < 30; j++)
+    int k = 80;
+    int q = 0, nr = 0;
+    int s = packets.size();
+    scene->setSceneRect(0,0,600,(s/80)*6+100);
+    for(int j = 0; j < (s / 80); j++)
     {
-        for(int i = 0; i < 50; i++)
+        k = 80;
+        if(j+1 == (s/80))
+            k = s % 80;
+        for(int i = 0; i < k; i++)
         {
-            k = fff[r];
-        switch(k)
-        {
-        case 0: c = Qt::magenta; break;
-        case 1: c = Qt::green; break;
-        case 2: c = Qt::red; break;
-        case 3: c = Qt::blue; break;
-        case 4: c = Qt::black; break;
-        case 5: c = Qt::yellow; break;
-        case 6: c = Qt::darkCyan; break;
-        case 7: c = Qt::lightGray; break;
-        default: c = Qt::black; break;
-        }
-        r++;
 
-        QGraphicsRectItem *r = scene->addRect(50+i*6,50+j*6,5,5,QPen(Qt::black),QBrush(c, Qt::SolidPattern));
+
+            bool present = false;
+            for (int w = 0; w < 13; w++)
+                if(pid[w] == packets[q].pid)
+                {
+                    present = true;
+                    r = w;
+                    break;
+                }
+            if(!present && nr!=12)
+            {
+                pid[nr] = packets[q].pid;
+                r = nr++;
+            }
+
+            switch(r)
+            {
+                case 0: c = Qt::magenta; break;
+                case 1: c = Qt::green; break;
+                case 2: c = Qt::red; break;
+                case 3: c = Qt::blue; break;
+                case 4: c = Qt::darkBlue; break;
+                case 5: c = Qt::yellow; break;
+                case 6: c = Qt::darkCyan; break;
+                case 7: c = Qt::lightGray; break;
+                case 8: c = Qt::darkGray; break;
+                case 9: c = Qt::darkGreen; break;
+                case 10: c = Qt::darkMagenta; break;
+                case 11: c = Qt::darkRed; break;
+                case 12: c = Qt::darkYellow; break;
+
+
+                default: c = Qt::white; break;
+            }
+            present = false;
+            q++;
+
+            QGraphicsRectItem *r = scene->addRect(50+i*6,((s/80)*6+100)-(50+j*6),5,5,QPen(Qt::black),QBrush(c, Qt::SolidPattern));
         //scene->mousePressEvent();
-        rec.push_back(r);
+            rec.push_back(r);
         }
     }
 

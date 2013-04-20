@@ -8,19 +8,6 @@
 
 using namespace std;
 
-//Transport Stream Header
-class TSHeader
-{
-public:
-    uint8_t transportErrorIndicator:1;
-    uint8_t payloadUnitStartIndicator:1;
-    uint8_t transportPriority:1;
-    uint16_t pid:13;
-    uint8_t scramblingControl:2;
-    uint8_t adaptationFieldControl:2;
-    uint8_t continuityCounter:4;
-};
-
 //Adaptation Field Header
 class AFHeader
 {
@@ -39,6 +26,20 @@ public:
     int8_t spliceCountdown;
     /* If transportPrivateDataFlag == 1 */
     uint8_t transportPrivateDataLength;
+};
+
+//Transport Stream Header
+class TSHeader
+{
+public:
+    uint8_t transportErrorIndicator:1;
+    uint8_t payloadUnitStartIndicator:1;
+    uint8_t transportPriority:1;
+    uint16_t pid:13;
+    uint8_t scramblingControl:2;
+    uint8_t adaptationFieldControl:2;
+    uint8_t continuityCounter:4;
+    AFHeader afheader;
 };
 
 class PCR
