@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <QPushButton>
 #include <QFileDialog>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+
 
 namespace Ui {
 class MyWidget;
@@ -27,13 +30,19 @@ private slots:
     void handleButton();
 
 protected:
-    void paintEvent(QPaintEvent *);
+    void paint();
     QColor c;
+    QPen qp;
+    QBrush qb;
+
 
 private:
     Ui::MyWidget *ui;
     QPushButton *m_button;
+    QGraphicsScene *scene;
+    QGraphicsView *map_bg;
     std::vector<PacketInfo> packets;
+    std::vector<QGraphicsRectItem*> rec;
 };
 
 #endif // MYWIDGET_H
