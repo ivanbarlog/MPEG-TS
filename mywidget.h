@@ -10,6 +10,11 @@
 #include <QFileDialog>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QMouseEvent>
+#include <QGridLayout>
+#include <QGraphicsSceneMouseEvent>
+#include "scene.h"
+
 
 
 namespace Ui {
@@ -25,9 +30,18 @@ public:
     ~MyWidget();
     int fff[1500];
     QString path;
+    long s;
+    std::vector<PacketInfo> packets;
+
+
+
+
 
 private slots:
     void handleButton();
+
+
+
 
 protected:
     void paint();
@@ -36,13 +50,14 @@ protected:
     QBrush qb;
 
 
+
 private:
     Ui::MyWidget *ui;
     QPushButton *m_button;
-    QGraphicsScene *scene;
+    Scene *scene;
     QGraphicsView *map_bg;
-    std::vector<PacketInfo> packets;
-    std::vector<QGraphicsRectItem*> rec;
+    QGridLayout *lo;
+
 };
 
 #endif // MYWIDGET_H

@@ -2,7 +2,10 @@
 #include "ui_mywidget.h"
 
 #include "parser.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <QPointF>
 
 
 MyWidget::MyWidget()
@@ -20,11 +23,14 @@ MyWidget::MyWidget()
 
     map_bg = new QGraphicsView(this);
     map_bg->setGeometry(50,50,600,300);
-    scene = new QGraphicsScene(map_bg);
+    scene = new Scene();
 
     map_bg->setBackgroundBrush(QBrush(Qt::white, Qt::SolidPattern));
     map_bg->setScene(scene);
     map_bg->scale(1,-1);
+    //lo = new QGridLayout(this);
+    //lo->addWidget(map_bg);
+
 
 
 }
@@ -36,8 +42,10 @@ void MyWidget::paint()
     int r = 0;
     int k = 80;
     int q = 0, nr = 0;
-    int s = packets.size();
+    s = packets.size();
     scene->setSceneRect(0,0,600,(s/80)*6+100);
+    scene->s = s;
+    scene->packets = packets;
     for(int j = 0; j <= (s / 80); j++)
     {
         k = 80;
@@ -83,13 +91,14 @@ void MyWidget::paint()
             present = false;
             q++;
 
-            QGraphicsRectItem *r = scene->addRect(50+i*6,((s/80)*6+100)-(50+j*6),5,5,QPen(Qt::black),QBrush(c, Qt::SolidPattern));
+            scene->addRect(50+i*6,((s/80)*6+100)-(50+j*6),5,5,QPen(Qt::black),QBrush(c, Qt::SolidPattern));
         //scene->mousePressEvent();
-            rec.push_back(r);
+
         }
     }
 
 }
+
 
 void MyWidget::handleButton()
 {
