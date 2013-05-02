@@ -39,7 +39,6 @@ public:
     uint8_t scramblingControl:2;
     uint8_t adaptationFieldControl:2;
     uint8_t continuityCounter:4;
-    AFHeader afheader;
 };
 
 class PCR
@@ -82,6 +81,39 @@ public:
     uint64_t start;
     int length;
     uint16_t pid:13;
+};
+
+class TSPacket
+{
+public:
+    TSHeader tsheader;
+    AFHeader afheader;
+    AFExtension afextension;
+};
+
+class PAT //program association table
+{
+public:
+    uint8_t pointerField;
+    uint8_t tableId;
+    uint8_t sectionSyntaxIndicator:1;
+    //uint8_t patFlag:1; //always set to 0
+    //uint8_t reserved:2; //always set to binary 3 - 11
+    // two bits which must be 00
+    uint16_t sectionLength:10;
+    uint16_t transportStreamId;
+    //uint8_t reserved:2; //always set to binary 3 - 11
+    uint8_t versionNumber:5;
+    uint8_t nextIndicator:1;
+    uint8_t sectionNumber;
+    uint8_t lastSectionNumber;
+};
+
+class Program
+{
+public:
+    uint16_t programNumber;
+    uint16_t programPID:13;
 };
 
 #endif // TYPES_H

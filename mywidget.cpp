@@ -105,7 +105,7 @@ void MyWidget::handleButton()
 
     path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Files (*.*)"));
     Parser p;
-    packets = p.getPacketsInfo(path);
+    packets = p.getPacketList(path);
     paint();
 }
 
