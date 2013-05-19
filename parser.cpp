@@ -12,301 +12,53 @@ Parser::Parser() : m_file(NULL)
 {
 }
 
-std::vector<PacketInfo> Parser::getPacketList(QString filename)
+uint8_t Parser::readNext1B()
 {
+    int result = 0;
     uint8_t read_data;
-    std::vector<PacketInfo> list;
 
-    m_file = fopen64(filename.toStdString().c_str(), "rb");
-
-    while (fread(&read_data, sizeof(uint8_t), 1, m_file) == 1)
+    result = fread(&read_data, sizeof(uint8_t), 1, m_file);
+    if (result != 1)
     {
-        if (read_data == SYNC_BYTE)
-        {
-            uint8_t arr2B[2] = {0};
-
-            PacketInfo tmp;
-            tmp.start = (uint64_t)(ftello64(m_file) - 1);
-
-            int affected;
-            for (int incr = 0; incr < 2; incr++)
-            {
-               affected = fread(&arr2B[incr], sizeof(uint8_t), 1, m_file);
-               if (affected != 1)
-               {
-                   qDebug("Packet not complete.");
-                   throw exception();
-               }
-            }
-
-            uint16_t first2B = ((arr2B[0] << 8) | arr2B[1]);
-            tmp.pid = first2B & 0x1fff;
-            tmp.length = getPacketLength();
-
-            list.push_back(tmp);
-
-            if (tmp.pid == 0x0000)
-            {
-                m_patPackets.push_back(tmp);
-            }
-
-
-            //printf("PID: %X, size of packet %d, packet started at %lu\n", tmp.pid, tmp.length, tmp.start);
-
-        }
-        else
-        {
-            continue;
-        }
-    }
-
-    /* parse Program Association Table */
-    m_pat = getPAT();
-
-
-
-    return list;
-}
-
-std::vector<Program> Parser::getPAT(/*PacketInfo packetInfo*/)
-{
-    if (m_file == NULL)
-    {
-        qDebug("File not initialized.");
+        qDebug("Something went wrong.");
         throw exception();
     }
 
-    //PAT packet;
-    uint8_t read_data;
-    int result = 0;
-    std::vector<PacketInfo> v = m_patPackets;
-    std::vector<Program> programs;
-
-    for (std::vector<PacketInfo>::iterator it = v.begin(); it != v.end(); ++it)
-    {
-        PacketInfo p = *it;
-
-        //go to first byte of file
-        rewind(m_file);
-        //seek bytes with current packet
-        fseeko64(m_file, p.start, SEEK_CUR);
-
-        fread(&read_data, sizeof(uint8_t), 1, m_file);
-
-        if (read_data == SYNC_BYTE)
-        {
-            //std::cout << "Found SYNC_BYTE" << std::endl;
-
-            for (int i = 0; i < 3; i++)
-            {
-                result = fread(&read_data, sizeof(uint8_t), 1, m_file);
-                if (result != 1)
-                {
-                    qDebug("Something went wrong.");
-                    throw exception();
-                }
-            }
-
-            // get adaptation control field to determine if adaptation field or payload is present
-            uint8_t adaptationFieldControl;
-            adaptationFieldControl = (read_data >> 4) & 0x3;
-
-            //AFC = 01 -> only payload
-            //AFC = 10 -> only adaptation field
-            //AFC = 11 -> payload & adaptation field
-
-            //PAT packets contains only payload
-            if (adaptationFieldControl == 1)
-            {
-                PAT tmp;
-
-                //std::cout << "I am in, creating PAT instance" << std::endl;
-
-                result = fread(&read_data, sizeof(uint8_t), 1, m_file);
-                if (result != 1)
-                {
-                    qDebug("Something went wrong.");
-                    throw exception();
-                }
-
-                tmp.pointerField = read_data;
-
-                //std::cout << "PointerField: " << std::hex << tmp.pointerField << std::endl;
-
-                result = fread(&read_data, sizeof(uint8_t), 1, m_file);
-                if (result != 1)
-                {
-                    qDebug("Something went wrong.");
-                    throw exception();
-                }
-
-                tmp.tableId = read_data;
-
-                //std::cout << "TableId: " << std::hex << tmp.tableId << std::endl;
-
-                uint8_t arr2B[2] = { 0 };
-
-                for (int i = 0; i < 2; i++)
-                {
-                    result = fread(&arr2B[i], sizeof(uint8_t), 1, m_file);
-                    if (result != 1)
-                    {
-                        qDebug("Something went wrong.");
-                        throw exception();
-                    }
-                }
-
-                uint16_t sorted2B;
-                sorted2B = ((arr2B[0] << 8) | arr2B[1]);
-
-                #define BIT16 0x8000
-                #define BIT15 0x4000
-
-                if (!!(sorted2B & BIT16) == 1 && !!(sorted2B & BIT15) == 0)
-                {
-                    qDebug("This is PAT packet.");
-                }
-                else
-                {
-                    qDebug("Not PAT packet - continue...");
-                    std::cout << "Not PAT packet: " << std::endl;
-                    std::cout << "1 ? " << std::hex << !!(sorted2B & BIT16) << std::endl;
-                    std::cout << "0 ? " << std::hex << !!(sorted2B & BIT15) << std::endl;
-                    continue;
-                }
-
-                tmp.sectionLength = sorted2B & 0x03FF;
-
-                for (int i = 0; i < 2; i++)
-                {
-                    result = fread(&arr2B[i], sizeof(uint8_t), 1, m_file);
-                    if (result != 1)
-                    {
-                        qDebug("Something went wrong.");
-                        throw exception();
-                    }
-                }
-
-                sorted2B = ((arr2B[0] << 8) | arr2B[1]);
-
-                tmp.transportStreamId = sorted2B;
-
-                result = fread(&read_data, sizeof(uint8_t), 1, m_file);
-                if (result != 1)
-                {
-                    qDebug("Something went wrong.");
-                    throw exception();
-                }
-
-                /*
-                 * NEED TO BE FIXED - compare 2 bits
-                 *
-                 *if (!!(read_data & (3 << 6)) == 3)
-                {
-                    qDebug("This is PAT packet.");
-                }
-                else
-                {
-                    qDebug("Not PAT packet - continue...");
-                    std::cout << "11 ? " << std::dec << !!(read_data & (3 << 6)) << std::endl;
-                    continue;
-                }*/
-
-                tmp.versionNumber = !!(read_data & (31 << 1));
-                tmp.nextIndicator = !!(read_data & 1);
-
-                std::cout << "VersionNumber: " << std::hex << tmp.versionNumber << ", nextIndicator: " << std::hex << tmp.nextIndicator << std::endl;
-
-                result = fread(&read_data, sizeof(uint8_t), 1, m_file);
-                if (result != 1)
-                {
-                    qDebug("Something went wrong.");
-                    throw exception();
-                }
-
-                tmp.sectionNumber = read_data;
-
-                result = fread(&read_data, sizeof(uint8_t), 1, m_file);
-                if (result != 1)
-                {
-                    qDebug("Something went wrong.");
-                    throw exception();
-                }
-
-                tmp.lastSectionNumber = read_data;
-
-                int countOfPrograms = (tmp.sectionLength - 5 - 4) / 4;
-
-
-                programs = parsePATPrograms(countOfPrograms);
-
-                std::cout << "Program table: ***********************" << std::endl;
-                for (std::vector<Program>::iterator itr = programs.begin(); itr != programs.end(); ++itr)
-                {
-                    Program tmp = *itr;
-                    std::cout << "Program number: " << std::hex << tmp.programNumber << "; Program PID: " << std::hex<< tmp.programPID << std::endl;
-                }
-                std::cout << "**************************************" << std::endl;
-
-            }
-        }
-        else
-        {
-            //cannot find SYNC_BYTE
-            qDebug("Cannot find SYNC_BYTE.");
-            throw exception();
-        }
-
-
-    }
-
-    return programs;
+    return read_data;
 }
 
-std::vector<Program> Parser::parsePATPrograms(int programCount)
+uint16_t Parser::readNext2B()
 {
-    std::vector<Program> v;
+    uint8_t arr2B[2] = {0};
+    int affected;
 
-    int result = 0;
-    uint8_t arr2B[2] = { 0 };
-    uint16_t sorted2B;
-
-    for (int i = 0; i < programCount; i++)
+    for (int i = 0; i < 2; i++)
     {
-        for (int j = 0; j < 2; j++)
-        {
-            result = fread(&arr2B[j], sizeof(uint8_t), 1, m_file);
-            if (result != 1)
-            {
-                qDebug("Something went wrong.");
-                throw exception();
-            }
-        }
-
-        sorted2B = ((arr2B[0] << 8) | arr2B[1]);
-
-        Program tmp;
-
-        tmp.programNumber = sorted2B;
-
-        for (int j = 0; j < 2; j++)
-        {
-            result = fread(&arr2B[j], sizeof(uint8_t), 1, m_file);
-            if (result != 1)
-            {
-                qDebug("Something went wrong.");
-                throw exception();
-            }
-        }
-
-        sorted2B = ((arr2B[0] << 8) | arr2B[1]);
-
-        tmp.programPID = sorted2B & 0x1fff;
-
-        v.push_back(tmp);
+       affected = fread(&arr2B[i], sizeof(uint8_t), 1, m_file);
+       if (affected != 1)
+       {
+           qDebug("Packet not complete.");
+           throw exception();
+       }
     }
 
-    return v;
+    return ((arr2B[0] << 8) | arr2B[1]);
+}
+
+void Parser::skipBytes(int count)
+{
+    int result = 0;
+    uint8_t read_data;
+
+    for (int i = 0; i < count; i++)
+    {
+        result = fread(&read_data, sizeof(uint8_t), 1, m_file);
+        if (result != 1)
+        {
+            qDebug("Something went wrong.");
+            throw exception();
+        }
+    }
 }
 
 int Parser::getPacketLength()
@@ -350,6 +102,298 @@ int Parser::getPacketLength()
     return -1;
 }
 
+PacketInfo Parser::getFirstPacket(uint16_t pid, std::vector<PacketInfo> list)
+{
+    bool found = false;
+    PacketInfo packet;
+
+    for (std::vector<PacketInfo>::iterator itr = list.begin(); itr != list.end(); ++itr)
+    {
+        if (found) break;
+
+        PacketInfo tmp = *itr;
+
+        if (tmp.pid == pid)
+        {
+            packet = tmp;
+            found = true;
+        }
+    }
+
+    return packet;
+}
+
+PAT Parser::getPATPacket(PacketInfo packetInfo)
+{
+    if (m_file == NULL)
+    {
+        qDebug("File not initialized.");
+        throw exception();
+    }
+
+    PAT tmp;
+    uint8_t read_data;
+    uint16_t next2B;
+
+    //go to first byte of file
+    rewind(m_file);
+    //seek bytes with current packet
+    fseeko64(m_file, packetInfo.start, SEEK_CUR);
+
+    read_data = readNext1B();
+
+    if (read_data == SYNC_BYTE)
+    {
+        skipBytes(2);
+
+        // get adaptation control field to determine if adaptation field or payload is present
+        read_data = readNext1B();
+        uint8_t adaptationFieldControl = (read_data >> 4) & 0x3;
+
+        //AFC = 01 -> only payload
+        //AFC = 10 -> only adaptation field
+        //AFC = 11 -> payload & adaptation field
+
+        //PAT packets contains only payload
+        if (adaptationFieldControl == 1)
+        {
+            read_data = readNext1B();
+
+            tmp.pointerField = read_data;
+
+            read_data = readNext1B();
+
+            tmp.tableId = read_data;
+
+            next2B = readNext2B();
+
+            #define BIT16 0x8000
+            #define BIT15 0x4000
+
+            if (!!(next2B & BIT16) == 1 && !!(next2B & BIT15) == 0)
+            {
+                //commented while developing
+                //qDebug("This is PAT packet.");
+            }
+            else
+            {
+                qDebug("Not PAT packet - continue...");
+                std::cout << "Not PAT packet: " << std::endl;
+                //std::cout << "1 ? " << std::hex << !!(sorted2B & BIT16) << std::endl;
+                //std::cout << "0 ? " << std::hex << !!(sorted2B & BIT15) << std::endl;
+                throw exception();
+            }
+
+            tmp.sectionLength = next2B & 0x03FF;
+
+            next2B = readNext2B();
+
+            tmp.transportStreamId = next2B;
+
+            read_data = readNext1B();
+
+            tmp.versionNumber = !!(read_data & (31 << 1));
+            tmp.nextIndicator = !!(read_data & 1);
+
+            read_data = readNext1B();
+
+            tmp.sectionNumber = read_data;
+
+            read_data = readNext1B();
+
+            tmp.lastSectionNumber = read_data;
+
+            tmp.programCount = (tmp.sectionLength - 5 - 4) / 4;
+        }
+    }
+    else
+    {
+        qDebug("Cannot find SYNC_BYTE.");
+        throw exception();
+    }
+
+    return tmp;
+}
+
+PMT Parser::parsePMT(PacketInfo packetInfo)
+{
+    if (m_file == NULL)
+    {
+        qDebug("File not initialized.");
+        throw exception();
+    }
+
+    PMT tmp;
+    uint8_t read_data;
+    uint16_t next2B;
+
+    //go to first byte ofreadNext1B file
+    rewind(m_file);
+    //seek bytes with current packet
+    fseeko64(m_file, packetInfo.start, SEEK_CUR);
+
+    read_data = readNext1B();
+
+    if (read_data == SYNC_BYTE)
+    {
+        skipBytes(2);
+
+        // get adaptation control field to determine if adaptation field or payload is present
+        read_data = readNext1B();
+        uint8_t adaptationFieldControl = (read_data >> 4) & 0x3;
+
+        //AFC = 01 -> only payload
+        //AFC = 10 -> only adaptation field
+        //AFC = 11 -> payload & adaptation field
+
+        //PMT packets contains only payload
+        if (adaptationFieldControl == 1)
+        {
+            tmp.pointerField = readNext1B();
+            tmp.tableId = readNext1B();
+
+            next2B = readNext2B();
+            tmp.sectionSyntaxIndicator = next2B & 0x8000;
+            tmp.sectionLength = next2B & 0x03FF;
+
+            tmp.programNum = readNext2B();
+
+            read_data = readNext1B();
+            tmp.versionNumber = read_data & 0x003E;
+            tmp.nextIndicator = read_data & 1;
+
+            tmp.sectionNumber = readNext1B();
+            tmp.lastSectionNumber = readNext1B();
+
+            next2B = readNext2B();
+            tmp.pcrPID = next2B & 0x1FFF;
+
+            next2B = readNext2B();
+            tmp.programInfoLength = next2B & 0x03FF;
+
+            //now we skip program descriptors and we perform section parsing
+            fseeko64(m_file, tmp.programInfoLength, SEEK_CUR);
+
+            //next2B = readNext2B();
+            //std::cout << "First byte after program info: " << std::hex << next2B << std::endl;
+
+            //length of program info
+            int length = tmp.sectionLength - 9 - tmp.programInfoLength - 4;
+
+
+            int readBytes = 0;
+            while (1)
+            {
+                if (readBytes >= length) break;
+
+                PMTProgram prog;
+
+                prog.streamType = readNext1B();
+                prog.elementaryPID = readNext2B() & 0x1FFF;
+                prog.esInfoLength = readNext2B() & 0x03FF;
+
+                readBytes += 5 + prog.esInfoLength;
+
+                tmp.programs.push_back(prog);
+            }
+        }
+    }
+
+    return tmp;
+}
+
+std::vector<PacketInfo> Parser::getPacketList(QString filename)
+{
+    uint8_t read_data;
+    std::vector<PacketInfo> list;
+
+    m_file = fopen64(filename.toStdString().c_str(), "rb");
+
+    while (fread(&read_data, sizeof(uint8_t), 1, m_file) == 1)
+    {
+        if (read_data == SYNC_BYTE)
+        {
+            PacketInfo tmp;
+            tmp.start = (uint64_t)(ftello64(m_file) - 1);
+
+            uint16_t first2B = readNext2B();
+            tmp.pid = first2B & 0x1fff;
+            tmp.length = getPacketLength();
+
+            list.push_back(tmp);
+
+            // pid 0x0000 is for PAT
+            if (m_programList.empty())
+            {
+                if (tmp.pid == 0x0000)
+                {
+                    PAT pat = getPATPacket(tmp);
+                    m_programList = parsePATPrograms(pat.programCount);
+                }
+            }
+            else
+            {
+                if (m_programList2.contains(tmp.pid))
+                {
+                    PMT pmt = parsePMT(tmp);
+                    m_programList2[tmp.pid].pmt = pmt;
+                }
+            }
+        }
+        else
+        {
+            continue;
+        }
+    }
+
+    /* parse Program Association Table */
+    printPrograms();
+
+
+    for (std::vector<Program>::iterator itr = m_programList.begin(); itr != m_programList.end(); ++itr)
+    {
+        Program tmp = *itr;
+
+        PacketInfo pi = getFirstPacket(tmp.programPID, list);
+        std::cout << "Program with PID " << tmp.programPID << " starts at " << std::hex << pi.start << std::endl;
+
+        //todo: zistit pre vsetky PMT co sa vysiela na jednotlivych PIDoch a vratit ako strukturu / cize najprv PMT parse
+    }
+
+    return list;
+}
+
+void Parser::printPrograms()
+{
+    std::cout << "Program table: ***********************" << std::endl;
+    for (std::vector<Program>::iterator itr = m_programList.begin(); itr != m_programList.end(); ++itr)
+    {
+        Program tmp = *itr;
+        std::cout << "Program number: " << std::hex << tmp.programNumber << "; Program PID: " << std::hex<< tmp.programPID << std::endl;
+    }
+    std::cout << "**************************************" << std::endl;
+}
+
+std::vector<Program> Parser::parsePATPrograms(int programCount)
+{
+    std::vector<Program> v;
+    //QHash<uint16_t, Program> programs;
+
+    for (int i = 0; i < programCount; i++)
+    {
+        Program tmp;
+
+        tmp.programNumber = readNext2B();
+        tmp.programPID = readNext2B() & 0x1fff;
+
+        v.push_back(tmp);
+
+        m_programList2.insert(tmp.programPID, tmp);
+    }
+
+    return v;
+}
+
 TSPacket Parser::getTSPacket(PacketInfo packetInfo)
 {
     if (m_file == NULL)
@@ -360,35 +404,19 @@ TSPacket Parser::getTSPacket(PacketInfo packetInfo)
 
     TSPacket packet;
     uint8_t read_data;
-    int result = 0;
 
     //go to first byte of file
     rewind(m_file);
     //seek bytes with current packet
     fseeko64(m_file, packetInfo.start, SEEK_CUR);
 
-    fread(&read_data, sizeof(uint8_t), 1, m_file);
+    read_data = readNext1B();
 
     if (read_data == SYNC_BYTE)
     {
-        std::cout << "Found SYNC_BYTE" << std::endl;
-
-        uint8_t arr2B[2] = { 0 };
-
-        for (int i = 0; i < 2; i++)
-        {
-            result = fread(&arr2B[i], sizeof(uint8_t), 1, m_file);
-            if (result != 1)
-            {
-                qDebug("Something went wrong.");
-                throw exception();
-            }
-        }
-
         TSHeader ts;
 
-        uint16_t first2B;
-        first2B = ((arr2B[0] << 8) | arr2B[1]);
+        uint16_t first2B = readNext2B();
 
         #define BIT16 0x8000
         #define BIT15 0x4000
@@ -399,25 +427,13 @@ TSPacket Parser::getTSPacket(PacketInfo packetInfo)
         ts.transportPriority = !!(first2B & BIT14);
         ts.pid = first2B & 0x1fff;
 
-        //std::cout << "TEI: " << std::hex << static_cast<int>(header.transportErrorIndicator) << ", PUSI: " << std::hex << int(header.payloadUnitStartIndicator) << ", TP: " << std::hex << int(header.transportPriority) << std::endl;
-        //std::cerr << "Found PID: " << std::hex << static_cast<int>(header.pid) << ", Old PID: " << std::hex << static_cast<int>(packetInfo.pid) << std::endl;
+        read_data = readNext1B();
 
-        uint8_t lastB;
-        result = fread(&lastB, sizeof(uint8_t), 1, m_file);
-        if (result != 1)
-        {
-            qDebug("Something went wrong.");
-            throw exception();
-        }
-
-        ts.scramblingControl = (lastB >> 6) & 0x3;
-        ts.adaptationFieldControl = (lastB >> 4) & 0x3;
-        ts.continuityCounter = lastB & 0xf;
+        ts.scramblingControl = (read_data >> 6) & 0x3;
+        ts.adaptationFieldControl = (read_data >> 4) & 0x3;
+        ts.continuityCounter = read_data & 0xf;
 
         packet.tsheader = ts;
-
-        //std::cout << "SC: " << std::hex << static_cast<int>(header.scramblingControl) << ", AFC: " << std::hex << static_cast<int>(header.adaptationFieldControl) << ", CC: " << std::hex << static_cast<int>(header.continuityCounter) << std::endl;
-
 
         //AFC = 01 -> only payload
         //AFC = 10 -> only adaptation field
@@ -427,21 +443,11 @@ TSPacket Parser::getTSPacket(PacketInfo packetInfo)
         {
             AFHeader af;
 
-            result = fread(&af.length, sizeof(uint8_t), 1, m_file);
-            if (result != 1)
-            {
-                qDebug("Something went wrong.");
-                throw exception();
-            }
+            af.length = readNext1B();
 
             if (af.length != 0)
             {
-                result = fread(&read_data, sizeof(uint8_t), 1, m_file);
-                if (result != 1)
-                {
-                    qDebug("Something went wrong.");
-                    throw exception();
-                }
+                read_data = readNext1B();
 
                 af.discontinuityIndicator = !!(read_data & (1 << 7));
                 af.randomAccessIndicator = !!(read_data & (1 << 6));
@@ -460,7 +466,6 @@ TSPacket Parser::getTSPacket(PacketInfo packetInfo)
     }
     else
     {
-        //cannot find SYNC_BYTE
         qDebug("Cannot find SYNC_BYTE.");
         throw exception();
     }
