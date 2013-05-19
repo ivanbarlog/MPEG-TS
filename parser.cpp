@@ -274,9 +274,6 @@ PMT Parser::parsePMT(PacketInfo packetInfo)
             //now we skip program descriptors and we perform section parsing
             fseeko64(m_file, tmp.programInfoLength, SEEK_CUR);
 
-            //next2B = readNext2B();
-            //std::cout << "First byte after program info: " << std::hex << next2B << std::endl;
-
             //length of program info
             int length = tmp.sectionLength - 9 - tmp.programInfoLength - 4;
 
@@ -293,6 +290,9 @@ PMT Parser::parsePMT(PacketInfo packetInfo)
                 prog.esInfoLength = readNext2B() & 0x03FF;
 
                 readBytes += 5 + prog.esInfoLength;
+
+                //skip bytes with descriptor
+                skipBytes(prog.esInfoLength);
 
                 tmp.programs.push_back(prog);
             }
@@ -335,8 +335,12 @@ std::vector<PacketInfo> Parser::getPacketList(QString filename)
             {
                 if (m_programList2.contains(tmp.pid))
                 {
+                    if (m_programList2[tmp.pid].filledPMT)
+                        continue;
+
                     PMT pmt = parsePMT(tmp);
                     m_programList2[tmp.pid].pmt = pmt;
+                    m_programList2[tmp.pid].filledPMT = true;
                 }
             }
         }
@@ -385,6 +389,7 @@ std::vector<Program> Parser::parsePATPrograms(int programCount)
 
         tmp.programNumber = readNext2B();
         tmp.programPID = readNext2B() & 0x1fff;
+        tmp.filledPMT = false;
 
         v.push_back(tmp);
 
@@ -469,4 +474,9 @@ TSPacket Parser::getTSPacket(PacketInfo packetInfo)
         qDebug("Cannot find SYNC_BYTE.");
         throw exception();
     }
+}
+
+QHash<uint16_t, Program> Parser::getProgramInfo()
+{
+    return m_programList2;
 }

@@ -15,6 +15,8 @@ public:
     TSPacket getTSPacket(PacketInfo packetInfo);
     PAT getPATPacket(PacketInfo packetInfo);
 
+    QHash<uint16_t, Program> getProgramInfo();
+
 private:
     int getPacketLength();
     std::vector<Program> parsePATPrograms(int programCount);

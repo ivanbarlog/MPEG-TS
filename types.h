@@ -199,6 +199,7 @@ class Program
 public:
     uint16_t programNumber;
     uint16_t programPID:13;
+    bool filledPMT;
     PMT pmt;
 };
 
