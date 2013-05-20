@@ -27,7 +27,7 @@ MyWidget::MyWidget()
 
     map_bg->setBackgroundBrush(QBrush(Qt::white, Qt::SolidPattern));
     map_bg->setScene(scene);
-    map_bg->scale(1,-1);
+    map_bg->scale(1,1);
     cb = new QCheckBox("1fff",this);
     cb->setGeometry(1150,200,100,20);
     cb->setChecked(true);
@@ -53,6 +53,7 @@ MyWidget::MyWidget()
 
 
 
+
 }
 
 void MyWidget::paint()
@@ -62,15 +63,34 @@ void MyWidget::paint()
     int r = 0;
     int k = 100;
     int q = 0, nr = 0;
-    io = new QGraphicsTextItem;
-    io->setPos(100,70);
-    io->setPlainText("0-10");
+    int off = 26, voff = 40;
+    QString st;
 
-    scene->addItem(io);
+    for(int ff = 0; ff < 10; ff++)
+    {
+
+        io = new QGraphicsTextItem;
+        io->setPos(60+103*ff ,20);
+        st = QString("%1 - %2").arg(ff*10).arg(ff*10+9);
+        io->setPlainText(st);
+        scene->addItem(io);
+    }
+
+
 
    // scene->addText("trololo",)
     for(int j = 0; j <= (s / 100); j++)
     {
+        io = new QGraphicsTextItem;
+        io->setPos(0,70+j*110);
+        st = QString("%1\n -\n%2k\n").arg(j).arg(j+1);
+        io->setPlainText(st);
+        scene->addItem(io);
+        if(j % 10 == 0) voff+=10;
+
+
+
+        off =25;
         k = 100;
         if(j == (s/100))
             k = s % 100;
@@ -123,9 +143,10 @@ void MyWidget::paint()
 
                 default: c = Qt::black; break;
             }
+            if(i % 10 == 0) off+=4;
 
             currentlist.push_back(q-1);
-            scene->addRect(50 + i*10,((s/100)*10+50)-(j*10),9,9,QPen(Qt::white),QBrush(c, Qt::SolidPattern));
+            scene->addRect(off + i*10,voff + j*10,9,9,QPen(Qt::white),QBrush(c, Qt::SolidPattern));
         //scene->mousePressEvent();
 
         }
@@ -141,11 +162,13 @@ void MyWidget::handleButton()
     Parser p;
     packets = p.getPacketList(path);
     s = packets.size();
-    scene->setSceneRect(0,0,1050,(s/100)*10+100);
+    scene->setSceneRect(0,0,1050,(s/100)*11+100);
     scene->s = s;
-    scene->packets = packets;   
+    scene->packets = packets;
     paint();
     scene->currentlist = currentlist;
+
+
 }
 
 void MyWidget::handleButton2()
