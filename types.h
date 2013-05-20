@@ -46,6 +46,14 @@ public:
         return m_types;
     }
 
+    QString getStreamType(uint8_t type)
+    {
+        if (m_types.contains(type))
+            return m_types[type];
+        else
+            return "Type number do not match.";
+    }
+
 private:
     QHash<uint8_t, QString> m_types;
 };

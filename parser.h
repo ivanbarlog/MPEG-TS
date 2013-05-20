@@ -13,8 +13,6 @@ public:
 
     std::vector<PacketInfo> getPacketList(QString filename);
     TSPacket getTSPacket(PacketInfo packetInfo);
-    PAT getPATPacket(PacketInfo packetInfo);
-
     QHash<uint16_t, Program> getProgramInfo();
 
 private:
@@ -26,6 +24,7 @@ private:
     uint16_t readNext2B();
     void skipBytes(int count);
     PMT parsePMT(PacketInfo packetInfo);
+    PAT getPATPacket(PacketInfo packetInfo);
 
     FILE *m_file;
     std::vector<Program> m_programList;
