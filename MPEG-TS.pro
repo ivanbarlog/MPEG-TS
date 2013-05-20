@@ -14,12 +14,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     parser.cpp \
-    mywidget.cpp
+    mywidget.cpp \
+    scene.cpp
 
 HEADERS  += \
     parser.h \
     types.h \
-    mywidget.h
+    mywidget.h \
+    scene.h
 
 FORMS    += \
     mywidget.ui
