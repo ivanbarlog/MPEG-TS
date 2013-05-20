@@ -28,20 +28,35 @@ MyWidget::MyWidget()
     map_bg->setBackgroundBrush(QBrush(Qt::white, Qt::SolidPattern));
     map_bg->setScene(scene);
     map_bg->scale(1,1);
-    cb = new QCheckBox("1fff",this);
+    cb = new QCheckBox("PSI/SI",this);
     cb->setGeometry(1150,200,100,20);
     cb->setChecked(true);
-    cb->setText("1fff");
+    cb->setText("PSI/SI");
     cboxes.push_back(cb);
-    cb = new QCheckBox("0000",this);
+    cb = new QCheckBox("Audio",this);
     cb->setGeometry(1150,250,100,20);
     cb->setChecked(true);
-    cb->setText("0000");
+    cb->setText("Audio");
     cboxes.push_back(cb);
-    cb = new QCheckBox("other",this);
+    cb = new QCheckBox("Video",this);
     cb->setGeometry(1150,300,100,20);
     cb->setChecked(true);
-    cb->setText("other");
+    cb->setText("Video");
+    cboxes.push_back(cb);
+    cb = new QCheckBox("DSM-CC",this);
+    cb->setGeometry(1150,350,100,20);
+    cb->setChecked(true);
+    cb->setText("DSM-CC");
+    cboxes.push_back(cb);
+    cb = new QCheckBox("Null Packet",this);
+    cb->setGeometry(1150,400,100,20);
+    cb->setChecked(true);
+    cb->setText("Null Packet");
+    cboxes.push_back(cb);
+    cb = new QCheckBox("Other",this);
+    cb->setGeometry(1150,450,100,20);
+    cb->setChecked(true);
+    cb->setText("Other");
     cboxes.push_back(cb);
 
     r_button = new QPushButton("Refresh", this);
@@ -98,6 +113,8 @@ void MyWidget::paint()
         {
 
 
+
+
             bool present = false;
             for (int w = 0; w < 20; w++)
                 if(pid[w] == packets[q].pid)
@@ -114,7 +131,9 @@ void MyWidget::paint()
 
             }
             present = false;
-            q++;
+          //  q++;
+            currentlist.push_back(q++);
+            if(i % 10 == 0) off+=4;
 
             if((cboxes[0]->isChecked() == false)&& pid[r] == 8191)
             continue;
@@ -143,9 +162,9 @@ void MyWidget::paint()
 
                 default: c = Qt::black; break;
             }
-            if(i % 10 == 0) off+=4;
 
-            currentlist.push_back(q-1);
+
+
             scene->addRect(off + i*10,voff + j*10,9,9,QPen(Qt::white),QBrush(c, Qt::SolidPattern));
         //scene->mousePressEvent();
 
@@ -168,9 +187,10 @@ void MyWidget::handleButton()
     scene->packets = packets;
     paint();
     scene->currentlist = currentlist;
+    scene->p = p;
 
     /* usage */
-    QHash<uint16_t, Program> programInfo;
+   /* QHash<uint16_t, Program> programInfo;
     programInfo = p.getProgramInfo();
 
     Program prgrm;
@@ -185,7 +205,7 @@ void MyWidget::handleButton()
 
     std::string text = typ.toUtf8().constData();
     std::cout << "Typ: " << text << std::endl;
-
+*/
 }
 
 void MyWidget::handleButton2()

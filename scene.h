@@ -5,6 +5,7 @@
 #include <vector>
 #include "types.h"
 #include "details.h"
+#include "parser.h"
 
 class Scene : public QGraphicsScene
 {
@@ -16,6 +17,7 @@ public:
     std::vector<PacketInfo> packets;
     std::vector<long> currentlist;
     details *det;
+    Parser p;
 
 
 };

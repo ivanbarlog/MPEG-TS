@@ -29,10 +29,10 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *e)
     {
         packetnr = currentlist[line*100+column];
         std::cout << "packet.nr =  " << std::hex << packetnr << std::endl << "pid: " <<std::hex << packets[packetnr].pid << std::endl;
-        det = new details();
-
+        det = new details(packetnr,packets[packetnr]);
+        det->p = p;
         det->show();
-        det->showinfo(packets[packetnr]);
+        det->showinfo();
 
     }
     else

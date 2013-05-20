@@ -38,6 +38,8 @@ public:
     std::vector<long> currentlist;
     QCheckBox *cb;
     QGraphicsTextItem * io;
+    std::vector<u_int16_t> pidlist;
+    std::vector<pidlist> pidgroups;
 
 
 
