@@ -289,6 +289,15 @@ PMT Parser::parsePMT(PacketInfo packetInfo)
                 prog.elementaryPID = readNext2B() & 0x1FFF;
                 prog.esInfoLength = readNext2B() & 0x03FF;
 
+                if (!m_pidList.contains(prog.elementaryPID))
+                {
+                    ProgramStreamType pst;
+                    pst.streamType = prog.streamType;
+                    pst.programNumber = m_programList2[packetInfo.pid].programNumber;
+
+                    m_pidList[prog.elementaryPID] = pst;
+                }
+
                 readBytes += 5 + prog.esInfoLength;
 
                 //skip bytes with descriptor
@@ -352,6 +361,7 @@ std::vector<PacketInfo> Parser::getPacketList(QString filename)
 
     /* parse Program Association Table */
     printPrograms();
+    printPIDList();
 
 
     for (std::vector<Program>::iterator itr = m_programList.begin(); itr != m_programList.end(); ++itr)
@@ -377,6 +387,28 @@ void Parser::printPrograms()
     }
     std::cout << "**************************************" << std::endl;
 }
+
+void Parser::printPIDList()
+{
+    std::cout << "PID\tProgram Number\tStream type ***********************" << std::endl;
+
+
+    for (QHash<uint16_t, ProgramStreamType>::iterator i = m_pidList.begin(); i != m_pidList.end(); ++i)
+    {
+        ProgramStreamType tmp = i.value();
+
+        std::cout << std::hex << i.key() << "\t" << std::dec << tmp.programNumber << "\t" << std::hex << (int) tmp.streamType << std::endl;
+    }
+
+/*    QHashIterator<uint16_t, ProgramStreamType> itr(m_pidList);
+    while (itr.hasNext())
+    {
+        ProgramStreamType tmp = itr.value();
+        std::cout << std::hex << itr.key() << "\t|\t" << std::dec << tmp.programNumber << "\t|\t" << std::hex<< tmp.streamType << std::endl;
+    }*/
+    std::cout << "**************************************" << std::endl;
+}
+
 
 std::vector<Program> Parser::parsePATPrograms(int programCount)
 {
@@ -491,4 +523,9 @@ TSPacket Parser::getTSPacket(PacketInfo packetInfo)
 QHash<uint16_t, Program> Parser::getProgramInfo()
 {
     return m_programList2;
+}
+
+QHash<uint16_t, ProgramStreamType> Parser::getPIDList()
+{
+    return m_pidList;
 }

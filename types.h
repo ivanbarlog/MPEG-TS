@@ -212,5 +212,12 @@ public:
     PMT pmt;
 };
 
+class ProgramStreamType
+{
+public:
+    uint16_t programNumber;
+    uint8_t streamType;
+};
+
 
 #endif // TYPES_H
