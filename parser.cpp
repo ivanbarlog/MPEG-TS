@@ -467,6 +467,18 @@ TSPacket Parser::getTSPacket(PacketInfo packetInfo)
             }
         }
 
+        //go to first byte of file
+        rewind(m_file);
+        //seek bytes with current packet
+        fseeko64(m_file, packetInfo.start, SEEK_CUR);
+
+        int result = fread(&packet.rawData, sizeof(uint8_t) * packetInfo.length, 1, m_file);
+        if (result != 1)
+        {
+            qDebug("Something went wrong.");
+            throw exception();
+        }
+
         return packet;
     }
     else

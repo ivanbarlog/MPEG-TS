@@ -132,6 +132,7 @@ public:
     TSHeader tsheader;
     AFHeader afheader;
     AFExtension afextension;
+    uint8_t rawData[512];
 };
 
 class PAT //program association table
