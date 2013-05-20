@@ -169,6 +169,22 @@ void MyWidget::handleButton()
     paint();
     scene->currentlist = currentlist;
 
+    /* usage */
+    QHash<uint16_t, Program> programInfo;
+    programInfo = p.getProgramInfo();
+
+    Program prgrm;
+    prgrm = programInfo[0x0020];
+
+    std::vector<PMTProgram> v = prgrm.pmt.programs;
+    PMTProgram asdf = v.at(0);
+
+    //globalna premenna
+    StreamType *streamTypes = new StreamType();
+    QString typ = streamTypes->getStreamType(asdf.streamType);
+
+    std::string text = typ.toUtf8().constData();
+    std::cout << "Typ: " << text << std::endl;
 
 }
 

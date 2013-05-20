@@ -46,6 +46,14 @@ public:
         return m_types;
     }
 
+    QString getStreamType(uint8_t type)
+    {
+        if (m_types.contains(type))
+            return m_types[type];
+        else
+            return "Type number do not match.";
+    }
+
 private:
     QHash<uint8_t, QString> m_types;
 };
@@ -132,6 +140,7 @@ public:
     TSHeader tsheader;
     AFHeader afheader;
     AFExtension afextension;
+    uint8_t rawData[512];
 };
 
 class PAT //program association table
