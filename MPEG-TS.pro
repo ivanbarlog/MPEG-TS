@@ -15,16 +15,19 @@ TEMPLATE = app
 SOURCES += main.cpp\
     parser.cpp \
     mywidget.cpp \
-    scene.cpp
+    scene.cpp \
+    details.cpp
 
 HEADERS  += \
     parser.h \
     types.h \
     mywidget.h \
-    scene.h
+    scene.h \
+    details.h
 
 FORMS    += \
-    mywidget.ui
+    mywidget.ui \
+    details.ui
 
 OTHER_FILES += \
     OC3.demo.ts

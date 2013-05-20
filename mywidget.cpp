@@ -161,6 +161,7 @@ void MyWidget::handleButton()
     path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Files (*.*)"));
     Parser p;
     packets = p.getPacketList(path);
+
     s = packets.size();
     scene->setSceneRect(0,0,1050,(s/100)*11+100);
     scene->s = s;

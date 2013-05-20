@@ -29,6 +29,11 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *e)
     {
         packetnr = currentlist[line*100+column];
         std::cout << "packet.nr =  " << std::hex << packetnr << std::endl << "pid: " <<std::hex << packets[packetnr].pid << std::endl;
+        det = new details();
+
+        det->show();
+        det->showinfo(packets[packetnr]);
+
     }
     else
         std::cout << "missclick" << std::endl;

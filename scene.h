@@ -3,7 +3,8 @@
 
 #include <QGraphicsScene>
 #include <vector>
-#include <types.h>
+#include "types.h"
+#include "details.h"
 
 class Scene : public QGraphicsScene
 {
@@ -14,6 +15,8 @@ public:
     long s;
     std::vector<PacketInfo> packets;
     std::vector<long> currentlist;
+    details *det;
+
 
 };
 
