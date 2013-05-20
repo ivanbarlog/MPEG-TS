@@ -13,6 +13,7 @@ public:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent * e);
     long s;
     std::vector<PacketInfo> packets;
+    std::vector<long> currentlist;
 
 };
 

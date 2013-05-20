@@ -14,6 +14,8 @@
 #include <QGridLayout>
 #include <QGraphicsSceneMouseEvent>
 #include "scene.h"
+#include <QCheckBox>
+#include <QGraphicsTextItem>
 
 
 
@@ -32,6 +34,10 @@ public:
     QString path;
     long s;
     std::vector<PacketInfo> packets;
+    std::vector<QCheckBox*> cboxes;
+    std::vector<long> currentlist;
+    QCheckBox *cb;
+    QGraphicsTextItem * io;
 
 
 
@@ -39,6 +45,7 @@ public:
 
 private slots:
     void handleButton();
+    void handleButton2();
 
 
 
@@ -53,10 +60,11 @@ protected:
 
 private:
     Ui::MyWidget *ui;
-    QPushButton *m_button;
+    QPushButton *m_button, *r_button;
     Scene *scene;
     QGraphicsView *map_bg;
     QGridLayout *lo;
+    int pid[20];
 
 };
 
