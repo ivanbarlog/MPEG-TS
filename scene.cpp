@@ -31,6 +31,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *e)
         std::cout << "packet.nr =  " << std::hex << packetnr << std::endl << "pid: " <<std::hex << packets[packetnr].pid << std::endl;
         det = new details(packetnr,packets[packetnr]);
         det->p = p;
+        det->pst = pst;
         det->show();
         det->showinfo();
 

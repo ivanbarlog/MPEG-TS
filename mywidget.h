@@ -38,9 +38,11 @@ public:
     std::vector<long> currentlist;
     QCheckBox *cb;
     QGraphicsTextItem * io;
-    std::vector<u_int16_t> pidlist;
-    std::vector<pidlist> pidgroups;
-
+    QHash<uint16_t, ProgramStreamType> pst;
+    Parser p;
+    QHash<uint16_t, Program> programInfo;
+    QGraphicsView *leg;
+    QGraphicsScene *legsc;
 
 
 

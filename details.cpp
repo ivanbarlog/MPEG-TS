@@ -8,6 +8,7 @@ details::details(int nr, PacketInfo packet)
     ui(new Ui::details)*/
 {
     this->packet = packet;
+    this->nr = nr;
     ui->setupUi(this);
     bg = new QGraphicsView(this);
     bg->setGeometry(20,200,600,400);
@@ -21,41 +22,7 @@ details::details(int nr, PacketInfo packet)
     tb->setGeometry(20,20,550,150);
 
 
-    QHash<uint16_t, Program> programInfo;
-    programInfo = p.getProgramInfo();
 
-    Program prgrm;
-/*
-    if (programInfo.contains(packet.pid))
-    {
-        std::cerr << "Hello" << std::endl;
-    }
-    else
-    {
-        return;
-    }
-*/
-    prgrm = programInfo[packet.pid];
-/*
-    std::vector<PMTProgram> v = prgrm.pmt.programs;
-
-    for (std::vector<PMTProgram>::iterator itr = v.begin(); itr != v.end(); ++itr)
-    {
-        PMTProgram tmp = *itr;
-        tmp.streamType
-        tmp.elementaryPID
-        //std::cout << "Program number: " << std::hex << tmp.programNumber << "; Program PID: " << std::hex<< tmp.programPID << std::endl;
-    }
-*/
-    //PMTProgram asdf = v.at(0);
-/*
-    //globalna premenna
-    StreamType *streamTypes = new StreamType();
-    QString typ = streamTypes->getStreamType(asdf.streamType);
-*/
-
-    QString info = QString("Packet nr.: %1\nPID: %2\n").arg(nr).arg(packet.pid);
-    tb->setText(info);
 
 
 
@@ -81,7 +48,17 @@ void details::showinfo()
     io->font().setPointSize(30);
     sc->addItem(io);
     }
+    pst = p.getPIDList();
 
+
+
+
+    StreamType *streamTypes = new StreamType();
+    QString typ = streamTypes->getStreamType(pst[packet.pid].streamType);
+    st = QString::number(packet.pid,16).toUpper();
+
+    QString info = QString("Packet nr.: %1\nPID: %2\nProgram number: %3\nStream type: %4").arg(nr).arg(st).arg(pst[packet.pid].programNumber).arg(typ);
+    tb->setText(info);
 
 }
 

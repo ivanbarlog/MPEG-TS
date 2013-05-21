@@ -19,7 +19,7 @@ public:
         m_types.insert(0x2, "ITU-T Rec. H.262 | ISO/IEC 13818-2 (MPEG-2) Video or ISO/IEC 11172-2 (MPEG-1) constrained parameter video stream");
         m_types.insert(0x3, "ISO/IEC 11172 Audio (MPEG-1) NOT USED by ATSC");
         m_types.insert(0x4, "ISO/IEC 13818-3 Audio (MPEG-2) NOT USED by ATSC");
-        m_types.insert(0x5, "MPEG-2 private table sections");
+        m_types.insert(0x5, "MPEG-2 private    table sections");
         m_types.insert(0x6, "MPEG-2 Packetized Elementary Stream packets containing private data");
         m_types.insert(0x7, "MHEG Packets");
         m_types.insert(0x8, "MPEG-2 Annex A DSM CC");

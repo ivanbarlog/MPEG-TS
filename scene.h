@@ -18,6 +18,7 @@ public:
     std::vector<long> currentlist;
     details *det;
     Parser p;
+    QHash<uint16_t, ProgramStreamType> pst;
 
 
 };

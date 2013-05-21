@@ -34,7 +34,8 @@ public:
     void showinfo();
     Parser p;
     TSPacket pp;
-    
+    QHash<uint16_t, ProgramStreamType> pst;
+
 private:
     Ui::details *ui;
     QGraphicsView *bg;
@@ -43,6 +44,8 @@ private:
     QString st;
     PacketInfo packet;
     QTextBrowser *tb;
+    int nr;
+
 
 
 

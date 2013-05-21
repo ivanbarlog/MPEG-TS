@@ -29,35 +29,66 @@ MyWidget::MyWidget()
     map_bg->setScene(scene);
     map_bg->scale(1,1);
     cb = new QCheckBox("PSI/SI",this);
-    cb->setGeometry(1150,200,100,20);
+    cb->setGeometry(1150,20,100,20);
     cb->setChecked(true);
     cb->setText("PSI/SI");
+    leg = new QGraphicsView(this);
+    leg->setGeometry(1130,25,12,12);
+    leg->setBackgroundBrush(QBrush(Qt::yellow, Qt::SolidPattern));
+    legsc = new QGraphicsScene(this);
+    leg->setScene(legsc);
+
     cboxes.push_back(cb);
     cb = new QCheckBox("Audio",this);
-    cb->setGeometry(1150,250,100,20);
+    cb->setGeometry(1150,60,100,20);
     cb->setChecked(true);
     cb->setText("Audio");
+    leg = new QGraphicsView(this);
+    leg->setGeometry(1130,65,12,12);
+    leg->setBackgroundBrush(QBrush(Qt::green, Qt::SolidPattern));
+    legsc = new QGraphicsScene(this);
+    leg->setScene(legsc);
     cboxes.push_back(cb);
     cb = new QCheckBox("Video",this);
-    cb->setGeometry(1150,300,100,20);
+    cb->setGeometry(1150,100,100,20);
     cb->setChecked(true);
     cb->setText("Video");
+    leg = new QGraphicsView(this);
+    leg->setGeometry(1130,105,12,12);
+    leg->setBackgroundBrush(QBrush(Qt::blue, Qt::SolidPattern));
+    legsc = new QGraphicsScene(this);
+    leg->setScene(legsc);
     cboxes.push_back(cb);
     cb = new QCheckBox("DSM-CC",this);
-    cb->setGeometry(1150,350,100,20);
+    cb->setGeometry(1150,140,100,20);
     cb->setChecked(true);
     cb->setText("DSM-CC");
     cboxes.push_back(cb);
+    leg = new QGraphicsView(this);
+    leg->setGeometry(1130,145,12,12);
+    leg->setBackgroundBrush(QBrush(Qt::red, Qt::SolidPattern));
+    legsc = new QGraphicsScene(this);
+    leg->setScene(legsc);
     cb = new QCheckBox("Null Packet",this);
-    cb->setGeometry(1150,400,100,20);
+    cb->setGeometry(1150,180,100,20);
     cb->setChecked(true);
     cb->setText("Null Packet");
     cboxes.push_back(cb);
+    leg = new QGraphicsView(this);
+    leg->setGeometry(1130,185,12,12);
+    leg->setBackgroundBrush(QBrush(Qt::black, Qt::SolidPattern));
+    legsc = new QGraphicsScene(this);
+    leg->setScene(legsc);
     cb = new QCheckBox("Other",this);
-    cb->setGeometry(1150,450,100,20);
+    cb->setGeometry(1150,220,100,20);
     cb->setChecked(true);
     cb->setText("Other");
     cboxes.push_back(cb);
+    leg = new QGraphicsView(this);
+    leg->setGeometry(1130,225,12,12);
+    leg->setBackgroundBrush(QBrush(Qt::lightGray, Qt::SolidPattern));
+    legsc = new QGraphicsScene(this);
+    leg->setScene(legsc);
 
     r_button = new QPushButton("Refresh", this);
     r_button->setGeometry(QRect(QPoint(1150, 400),
@@ -80,7 +111,6 @@ void MyWidget::paint()
     int q = 0, nr = 0;
     int off = 26, voff = 40;
     QString st;
-
     for(int ff = 0; ff < 10; ff++)
     {
 
@@ -90,6 +120,7 @@ void MyWidget::paint()
         io->setPlainText(st);
         scene->addItem(io);
     }
+
 
 
 
@@ -114,48 +145,57 @@ void MyWidget::paint()
 
 
 
-
-            bool present = false;
-            for (int w = 0; w < 20; w++)
-                if(pid[w] == packets[q].pid)
-                {
-                    present = true;
-                    r = w;
-                    break;
-                }
-            if(!present && nr!=19)
+            switch(pst[packets[q].pid].streamType)
             {
-                pid[nr] = packets[q].pid;
-                r = nr++;
+                case 0x1:
+            case 0x2:
+            case 0x10:   r = 2; break;
+            case 0x3:
+            case 0x4:
+                case 0xF:
+                case 0x11:
+            case 0x81: r = 1; break;
+            case 0x8:
+            case 0xA:
+            case 0xB:
+            case 0xC:
+            case 0xD:  r = 3; break;
 
+            default: r = 5; break;
 
             }
-            present = false;
+            if(packets[q].pid == 0x1FFF)
+                r = 4;
+
+            if(packets[q].pid == 0 || programInfo.contains(packets[q].pid))
+                r = 0;
+
+
+
+
           //  q++;
             currentlist.push_back(q++);
             if(i % 10 == 0) off+=4;
 
-            if((cboxes[0]->isChecked() == false)&& pid[r] == 8191)
+            if(cboxes[r]->isChecked() == false)
             continue;
-            if(!cboxes[1]->isChecked() && pid[r] == 0)
-            continue;
-            if(!cboxes[2]->isChecked() && (pid[nr] != 8191 && pid[nr] != 0))
-            continue;
+            //    r = 7;
+
 
 
             switch(r)
             {
-                case 0: c = Qt::magenta; break;
+                case 0: c = Qt::yellow; break;
                 case 1: c = Qt::green; break;
-                case 2: c = Qt::red; break;
-                case 3: c = Qt::blue; break;
-                case 4: c = Qt::darkBlue; break;
-                case 5: c = Qt::yellow; break;
+                case 2: c = Qt::blue; break;
+                case 3: c = Qt::red; break;
+                case 4: c = Qt::black; break;
+                case 5: c = Qt::lightGray; break;
                 case 6: c = Qt::darkCyan; break;
                 case 7: c = Qt::lightGray; break;
                 case 8: c = Qt::darkGray; break;
                 case 9: c = Qt::darkGreen; break;
-                case 10: c = Qt::darkMagenta; break;
+                case 10: c = Qt::magenta; break;
                 case 11: c = Qt::darkRed; break;
                 case 12: c = Qt::darkYellow; break;
 
@@ -178,16 +218,21 @@ void MyWidget::handleButton()
 {
 
     path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Files (*.*)"));
-    Parser p;
+
     packets = p.getPacketList(path);
 
     s = packets.size();
     scene->setSceneRect(0,0,1050,(s/100)*11+100);
     scene->s = s;
+
     scene->packets = packets;
+    pst = p.getPIDList();
+    scene->pst = pst;
+    scene->p = p;
+    programInfo = p.getProgramInfo();
     paint();
     scene->currentlist = currentlist;
-    scene->p = p;
+
 
     /* usage */
    /* QHash<uint16_t, Program> programInfo;
