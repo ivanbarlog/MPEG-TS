@@ -19,7 +19,16 @@ MyWidget::MyWidget()
     m_button->setGeometry(QRect(QPoint(500, 600),
     QSize(200, 50)));
     connect(m_button, SIGNAL(released()), this, SLOT(handleButton()));
-    m_button->setText("Open File");
+    changepart = new QPushButton("changepart", this);
+    changepart->setText("Open File");
+
+    changepart->setGeometry(QRect(QPoint(1000, 600),
+    QSize(200, 50)));
+    connect(changepart, SIGNAL(released()), this, SLOT(handleButton3()));
+    changepart->setText("Load Part");
+
+    combo = new QComboBox(this);
+    combo->setGeometry(800,600,100,20);
 
     map_bg = new QGraphicsView(this);
     map_bg->setGeometry(20,20,1100,500);
@@ -95,10 +104,6 @@ MyWidget::MyWidget()
     QSize(100, 50)));
     connect(r_button, SIGNAL(released()), this, SLOT(handleButton2()));
     r_button->setText("Refresh");
-
-
-
-
 
 }
 
@@ -213,13 +218,51 @@ void MyWidget::paint()
 
 }
 
+int MyWidget::getpartscount(FILE *f)
+{
+    u_int8_t read_data;
+    int current = 0, count = 1;
+
+    while (fread(&read_data, sizeof(uint8_t), 1, f) == 1)
+    {
+        if(read_data == 0x47)
+        {
+            if(current == 0)
+                partstarts.push_back(ftello64(f) - 1);
+            fseeko64(f, 187L, SEEK_CUR);
+            if(++current == 100000)
+            {
+                count++;
+                current = 0;
+            }
+        }
+    }
+    return count;
+}
+
+
+
 
 void MyWidget::handleButton()
 {
 
     path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Files (*.*)"));
 
-    packets = p.getPacketList(path);
+    big = fopen64(path.toStdString().c_str(), "rb");
+    parts = getpartscount(big);
+    for(int pp = 0; pp<parts;pp++)
+    {
+        combo->addItem(QString::number(pp+1,10));
+        std::cout << std::dec << (int)partstarts[pp] << std::endl;
+
+    }
+    partstarts.push_back(ftello64(big));
+    combo->setCurrentIndex(0);
+    std::cout << std::dec << (int)ftello64(big) << std::endl;
+
+
+
+  /*  packets = p.getPacketList(path);
 
     s = packets.size();
     scene->setSceneRect(0,0,1050,(s/100)*11+100);
@@ -232,7 +275,7 @@ void MyWidget::handleButton()
     programInfo = p.getProgramInfo();
     paint();
     scene->currentlist = currentlist;
-
+*/
 
     /* usage */
    /* QHash<uint16_t, Program> programInfo;
@@ -253,6 +296,8 @@ void MyWidget::handleButton()
 */
 }
 
+
+
 void MyWidget::handleButton2()
 {
     scene->clear();
@@ -260,6 +305,15 @@ void MyWidget::handleButton2()
     scene->currentlist = currentlist;
 }
 
+void MyWidget::handleButton3()
+{
+    int start, end;
+    part = combo->currentIndex();
+    start = partstarts[part];
+    end = partstarts[part+1]-1;
+    std::cout << "Part start: " << std::dec << start << " ; end: " << std::dec << end << std::endl;
+
+}
 MyWidget::~MyWidget()
 {
     delete ui;

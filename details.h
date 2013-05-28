@@ -19,6 +19,8 @@
 #include <QCheckBox>
 #include <QGraphicsTextItem>
 #include "parser.h"
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 
 namespace Ui {
 class details;
@@ -35,6 +37,8 @@ public:
     Parser p;
     TSPacket pp;
     QHash<uint16_t, ProgramStreamType> pst;
+    QTreeWidget *tw;
+    QTreeWidgetItem *twi;
 
 private:
     Ui::details *ui;

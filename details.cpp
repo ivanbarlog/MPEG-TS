@@ -18,9 +18,9 @@ details::details(int nr, PacketInfo packet)
     bg->setScene(sc);
     bg->scale(1,1);
     sc->setSceneRect(0,0,600,500);
-    tb = new QTextBrowser(this);
-    tb->setGeometry(20,20,550,150);
-
+     tw = new QTreeWidget(this);
+   // tb = new QTextBrowser(this);
+  //  tb->setGeometry(20,20,550,150);
 
 
 
@@ -45,6 +45,7 @@ void details::showinfo()
     io->setPos(c+(i%16)*30,l);
     st = QString::number(pp.rawData[i],16).toUpper();
     io->setPlainText(st);
+    io->setToolTip(QString::number(pp.rawData[i],2));
     io->font().setPointSize(30);
     sc->addItem(io);
     }
@@ -57,8 +58,77 @@ void details::showinfo()
     QString typ = streamTypes->getStreamType(pst[packet.pid].streamType);
     st = QString::number(packet.pid,16).toUpper();
 
-    QString info = QString("Packet nr.: %1\nPID: %2\nProgram number: %3\nStream type: %4").arg(nr).arg(st).arg(pst[packet.pid].programNumber).arg(typ);
-    tb->setText(info);
+    tw->setGeometry(20,20,550,150);
+    tw->setHeaderLabel("Packet");
+
+    //ts header
+    twi = new QTreeWidgetItem();
+    twi->setText(0,"MPEG-TS Header");
+    QTreeWidgetItem *ch = new QTreeWidgetItem();
+    ch->setText(0,"Sync Byte: 0x47");
+    twi->addChild(ch);
+    ch = new QTreeWidgetItem();
+    ch->setText(0,QString("Transport Error Indicator: %1 ").arg(pp.tsheader.transportErrorIndicator));
+    twi->addChild(ch);
+    ch = new QTreeWidgetItem();
+    ch->setText(0,QString("Payload Unit Start Indicator: %1 ").arg(pp.tsheader.payloadUnitStartIndicator));
+    twi->addChild(ch);
+    ch = new QTreeWidgetItem();
+    ch->setText(0,QString("Transport Priority: %1 ").arg(pp.tsheader.transportPriority));
+    twi->addChild(ch);
+    ch = new QTreeWidgetItem();
+    ch->setText(0,QString("PID: 0x%1 ").arg(QString::number(pp.tsheader.pid,16)));
+    twi->addChild(ch);
+    ch = new QTreeWidgetItem();
+    ch->setText(0,QString("Scrambling Control: %1 ").arg(pp.tsheader.scramblingControl));
+    twi->addChild(ch);
+    ch = new QTreeWidgetItem();
+    ch->setText(0,QString("Adaptation Field Control: %1 ").arg(pp.tsheader.adaptationFieldControl));
+    twi->addChild(ch);
+    ch = new QTreeWidgetItem();
+    ch->setText(0,QString("Continuity Counter: %1 ").arg(pp.tsheader.continuityCounter));
+    twi->addChild(ch);
+    tw->addTopLevelItem(twi);
+
+    //adaptation field
+    if(pp.tsheader.adaptationFieldControl > 1)
+    {
+        twi = new QTreeWidgetItem();
+        twi->setText(0,"Adaptation Field");
+        ch = new QTreeWidgetItem();
+        ch->setText(0,QString("Adaptation Field Lenght: %1 ").arg(pp.afheader.length));
+        twi->addChild(ch);
+        ch = new QTreeWidgetItem();
+        ch->setText(0,QString("Discontinuity Indicator: %1 ").arg(pp.afheader.discontinuityIndicator));
+        twi->addChild(ch);
+        ch = new QTreeWidgetItem();
+        ch->setText(0,QString("Random Access Indicator: %1 ").arg(pp.afheader.randomAccessIndicator));
+        twi->addChild(ch);
+        ch = new QTreeWidgetItem();
+        ch->setText(0,QString("Elementary stream priority indicator: %1 ").arg(pp.afheader.elementaryStreamPriorityIndicator));
+        twi->addChild(ch);
+        ch = new QTreeWidgetItem();
+        ch->setText(0,QString("PCR Flag: %1 ").arg(pp.afheader.pcrFlag));
+        twi->addChild(ch);
+        ch = new QTreeWidgetItem();
+        ch->setText(0,QString("OPCR Flag: %1 ").arg(pp.afheader.opcrFlag));
+        twi->addChild(ch);
+        ch = new QTreeWidgetItem();
+        ch->setText(0,QString("Splicing Point Flag: %1 ").arg(pp.afheader.splicingPointFlag));
+        twi->addChild(ch);
+        ch = new QTreeWidgetItem();
+        ch->setText(0,QString("Transport Private Data Flag: %1 ").arg(pp.afheader.transportPrivateDataFlag));
+        twi->addChild(ch);
+        ch = new QTreeWidgetItem();
+        ch->setText(0,QString("Adaptation Field Extension Flag: %1 ").arg(pp.afheader.extensionFlag));
+        twi->addChild(ch);
+        ch = new QTreeWidgetItem();
+        ch->setText(0,"Adaptation Field Extension");
+        twi->addChild(ch);
+     //   QTreeWidgetItem *afex = new QTreeWidgetItem();
+
+        tw->addTopLevelItem(twi);
+    }
 
 }
 

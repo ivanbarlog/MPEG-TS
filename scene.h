@@ -15,7 +15,7 @@ public:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent * e);
     long s;
     std::vector<PacketInfo> packets;
-    std::vector<long> currentlist;
+    std::vector<u_int64_t> currentlist;
     details *det;
     Parser p;
     QHash<uint16_t, ProgramStreamType> pst;
